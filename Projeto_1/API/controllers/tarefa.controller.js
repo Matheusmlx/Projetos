@@ -2,12 +2,25 @@ const tarefaModel = require("../models/tarefa.model");
 
 //---------------SALVANDO TAREFA-----------------------
 const saveTarefa = async (req, res) => {
-    try {
-        const aeronave = new tarefaModel(req.body);
-        const response = await aeronave.save();
-        res.send(response);
-      } catch (err) {
-        res.status(400).json({ erro: err.message });
+    const {titulo}=req.body
+    if (!req.is("application/json")) {
+        res
+          .status(400)
+          .json({ erro: "Bad Request! content-type deve ser application/json" });
+      } else {
+          //Tratando a unique de titulo
+        if(await tarefaModel.findOne({titulo}))
+            return res.status(400).send({error:'Esse titulo ja existe tente outro'})
+        
+        try {
+          const tarefa = new tarefaModel(req.body);
+          await tarefa.save();
+          res.status(201).json({
+            criado: tarefa._id
+          });
+        } catch (err) {
+          res.status(400).json({ erro: err.message });
+        }
       }
   };
 //-----------------------------BUSCANDO TAREFA-------------------------
